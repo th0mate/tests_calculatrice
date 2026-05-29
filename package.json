@@ -1,0 +1,24 @@
+{
+  "name": "calculatrice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "lint": "eslint src/ tests/",
+    "test": "jest",
+    "test:unit": "jest tests/calculator.test.js",
+    "test:integration": "jest tests/api.test.js",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "jest": "^30.4.2"
+  }
+}
