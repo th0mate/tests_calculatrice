@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0b16" />
+    <title>Aurora · Calculatrice</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true">
+      <span class="blob blob--1"></span>
+      <span class="blob blob--2"></span>
+      <span class="blob blob--3"></span>
+    </div>
+
+    <main class="app">
+      <section class="calculator" aria-label="Calculatrice">
+        <header class="calculator__head">
+          <div class="brand">
+            <span class="brand__mark">✦</span>
+            <span class="brand__name">Aurora</span>
+          </div>
+
+          <div class="head__tools">
+            <span id="status" class="status status--idle" role="status" aria-live="polite">
+              <span class="status__dot"></span>
+              <span class="status__label">API prête</span>
+            </span>
+            <button id="theme" class="icon-btn" type="button" aria-label="Changer de thème">
+              <svg class="icon-btn__sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="12" cy="12" r="4.2" />
+                <g stroke-linecap="round">
+                  <line x1="12" y1="2.5" x2="12" y2="5" />
+                  <line x1="12" y1="19" x2="12" y2="21.5" />
+                  <line x1="2.5" y1="12" x2="5" y2="12" />
+                  <line x1="19" y1="12" x2="21.5" y2="12" />
+                  <line x1="5.1" y1="5.1" x2="6.9" y2="6.9" />
+                  <line x1="17.1" y1="17.1" x2="18.9" y2="18.9" />
+                  <line x1="5.1" y1="18.9" x2="6.9" y2="17.1" />
+                  <line x1="17.1" y1="6.9" x2="18.9" y2="5.1" />
+                </g>
+              </svg>
+              <svg class="icon-btn__moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M20 14.5A8 8 0 1 1 9.5 4a6.3 6.3 0 0 0 10.5 10.5Z" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="display" id="display">
+          <div class="display__expr" id="expr">&nbsp;</div>
+          <output class="display__value" id="value">0</output>
+        </div>
+
+        <div class="keypad">
+          <button class="key key--fn" data-action="clear">C</button>
+          <button class="key key--fn" data-action="negate">±</button>
+          <button class="key key--fn" data-action="backspace" aria-label="Effacer un chiffre">⌫</button>
+          <button class="key key--op" data-op="divide" aria-label="Diviser">÷</button>
+
+          <button class="key" data-digit="7">7</button>
+          <button class="key" data-digit="8">8</button>
+          <button class="key" data-digit="9">9</button>
+          <button class="key key--op" data-op="multiply" aria-label="Multiplier">×</button>
+
+          <button class="key" data-digit="4">4</button>
+          <button class="key" data-digit="5">5</button>
+          <button class="key" data-digit="6">6</button>
+          <button class="key key--op" data-op="subtract" aria-label="Soustraire">−</button>
+
+          <button class="key" data-digit="1">1</button>
+          <button class="key" data-digit="2">2</button>
+          <button class="key" data-digit="3">3</button>
+          <button class="key key--op" data-op="add" aria-label="Additionner">+</button>
+
+          <button class="key key--zero" data-digit="0">0</button>
+          <button class="key" data-action="decimal">,</button>
+          <button class="key key--eq" data-action="equals" aria-label="Égal">=</button>
+        </div>
+      </section>
+
+      <aside class="history" aria-label="Historique des calculs">
+        <div class="history__inner">
+          <div class="history__head">
+            <h2 class="history__title">Historique</h2>
+            <button id="clear-history" class="ghost-btn" type="button">Vider</button>
+          </div>
+          <ul class="history__list" id="history-list"></ul>
+          <p class="history__empty" id="history-empty">
+            Les calculs validés par l'API apparaîtront ici.
+          </p>
+        </div>
+      </aside>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

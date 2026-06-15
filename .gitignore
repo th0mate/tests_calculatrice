@@ -1,3 +1,9 @@
 node_modules/
 coverage/
 .antigravitycli/
+/.idea/discord.xml
+/.idea/calculatrice.iml
+/.idea/.gitignore
+/.idea/modules.xml
+/.claude/launch.json
+/.idea/vcs.xml

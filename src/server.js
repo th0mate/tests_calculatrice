@@ -6,20 +6,17 @@ const calculator = new Calculator();
 const PORT = process.env.PORT || 3000;
 
 function requestHandler(req, res) {
-  // 1. Positionner les headers CORS sur toutes les réponses
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
 
-  // 2. Si méthode OPTIONS → répondre 204 vide et stopper
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
     return;
   }
 
-  // 3. Si méthode ≠ GET → répondre 405 avec header Allow
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET, OPTIONS");
     res.writeHead(405);
@@ -27,7 +24,6 @@ function requestHandler(req, res) {
     return;
   }
 
-  // 4. Si pathname ≠ /calculate → répondre 404
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
   if (pathname !== "/calculate") {
@@ -36,7 +32,6 @@ function requestHandler(req, res) {
     return;
   }
 
-  // 5. Si operation, a ou b sont absents de la query string → répondre 400
   const query = parsedUrl.query;
   if (query.operation === undefined || query.a === undefined || query.b === undefined) {
     res.writeHead(400);
@@ -44,7 +39,6 @@ function requestHandler(req, res) {
     return;
   }
 
-  // 6. Convertir a et b en Number ; si NaN → répondre 400
   const numA = Number(query.a);
   const numB = Number(query.b);
   if (
@@ -58,7 +52,6 @@ function requestHandler(req, res) {
     return;
   }
 
-  // 7 & 8. Exécuter l'opération via Calculator dans un try/catch / Si opération inconnue → répondre 400
   const operation = query.operation;
   const allowedOperations = ["add", "subtract", "multiply", "divide"];
   if (!allowedOperations.includes(operation)) {
@@ -84,7 +77,6 @@ function requestHandler(req, res) {
         break;
     }
 
-    // 9. Répondre 200 avec { operation, a, b, result }
     res.writeHead(200);
     res.end(JSON.stringify({
       operation,
@@ -100,7 +92,6 @@ function requestHandler(req, res) {
 
 const server = http.createServer(requestHandler);
 
-/* istanbul ignore next */
 if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
