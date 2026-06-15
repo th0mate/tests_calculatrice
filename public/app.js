@@ -1,11 +1,6 @@
-/* ============================================================
-   Aurora · Calculatrice — logique frontend
-   Chaque "=" déclenche un appel GET /calculate vers le backend.
-   ============================================================ */
 (() => {
   "use strict";
 
-  // --- Références DOM ---
   const exprEl = document.getElementById("expr");
   const valueEl = document.getElementById("value");
   const displayEl = document.getElementById("display");
@@ -14,21 +9,16 @@
   const historyList = document.getElementById("history-list");
   const keypad = document.querySelector(".keypad");
 
-  // --- Symboles d'opérateur pour l'affichage ---
   const OP_SYMBOLS = { add: "+", subtract: "−", multiply: "×", divide: "÷" };
 
-  // --- État de la calculatrice ---
   const state = {
-    current: "0", // nombre en cours de saisie (chaîne)
-    operand: null, // premier opérande mémorisé (nombre)
-    operation: null, // opération en attente (clé API)
-    overwrite: false, // le prochain chiffre remplace l'afficheur
-    locked: false, // verrou pendant un appel réseau
+    current: "0",
+    operand: null,
+    operation: null,
+    overwrite: false,
+    locked: false,
   };
 
-  // ---------------------------------------------------------
-  //  Formatage des nombres
-  // ---------------------------------------------------------
   function formatNumber(n) {
     if (n === null || n === undefined) return "0";
     if (!isFinite(n)) return n > 0 ? "∞" : "−∞";
@@ -37,9 +27,6 @@
     return rounded.toLocaleString("fr-FR", { maximumFractionDigits: 10 });
   }
 
-  // ---------------------------------------------------------
-  //  Rendu de l'afficheur
-  // ---------------------------------------------------------
   function render() {
     valueEl.textContent = state.current;
     if (state.operand !== null && state.operation) {
@@ -64,9 +51,6 @@
     statusLabel.textContent = label;
   }
 
-  // ---------------------------------------------------------
-  //  Saisie
-  // ---------------------------------------------------------
   function inputDigit(d) {
     if (state.locked) return;
     if (state.overwrite) {
@@ -75,7 +59,7 @@
     } else if (state.current === "0") {
       state.current = d;
     } else {
-      if (state.current.replace("-", "").length >= 15) return; // garde-fou
+      if (state.current.replace("-", "").length >= 15) return;
       state.current += d;
     }
     render();
@@ -120,15 +104,12 @@
     render();
   }
 
-  // Convertit la chaîne affichée (format FR) en nombre JS.
   function toNumber(str) {
     return Number(str.replace(/\s/g, "").replace(",", "."));
   }
 
   function chooseOperation(op) {
     if (state.locked) return;
-    // Si une opération est déjà en attente et qu'un 2e opérande a été saisi,
-    // on enchaîne en calculant d'abord.
     if (state.operation && !state.overwrite) {
       equals(op);
       return;
@@ -140,9 +121,6 @@
     render();
   }
 
-  // ---------------------------------------------------------
-  //  Calcul via le backend
-  // ---------------------------------------------------------
   async function equals(chainOp = null) {
     if (state.locked) return;
     if (state.operation === null || state.operand === null || state.overwrite) {
@@ -172,7 +150,6 @@
       state.overwrite = true;
 
       displayEl.classList.remove("display--error");
-      // Relance l'animation de révélation.
       displayEl.classList.remove("display--result");
       void displayEl.offsetWidth;
       displayEl.classList.add("display--result");
@@ -193,9 +170,6 @@
     }
   }
 
-  // ---------------------------------------------------------
-  //  Historique
-  // ---------------------------------------------------------
   function addHistory(expr, result) {
     const li = document.createElement("li");
     li.className = "history__item";
@@ -219,9 +193,6 @@
     historyList.innerHTML = "";
   });
 
-  // ---------------------------------------------------------
-  //  Effet ripple sur les touches
-  // ---------------------------------------------------------
   function ripple(btn, x, y) {
     const circle = document.createElement("span");
     const size = Math.max(btn.clientWidth, btn.clientHeight);
@@ -234,9 +205,6 @@
     circle.addEventListener("animationend", () => circle.remove());
   }
 
-  // ---------------------------------------------------------
-  //  Branchement des touches
-  // ---------------------------------------------------------
   function handleKey(btn, x, y) {
     ripple(btn, x, y);
     btn.classList.add("is-pressed");
@@ -259,9 +227,6 @@
     if (btn) handleKey(btn, e.clientX, e.clientY);
   });
 
-  // ---------------------------------------------------------
-  //  Support clavier physique
-  // ---------------------------------------------------------
   const KEY_MAP = {
     "+": '[data-op="add"]',
     "-": '[data-op="subtract"]',
@@ -286,9 +251,6 @@
     if (btn) handleKey(btn);
   });
 
-  // ---------------------------------------------------------
-  //  Bascule de thème
-  // ---------------------------------------------------------
   const root = document.documentElement;
   const storedTheme = localStorage.getItem("aurora-theme");
   if (storedTheme) root.dataset.theme = storedTheme;
@@ -299,6 +261,5 @@
     localStorage.setItem("aurora-theme", next);
   });
 
-  // --- Démarrage ---
   render();
 })();

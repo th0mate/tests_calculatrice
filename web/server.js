@@ -3,11 +3,6 @@
  *
  * Sert le frontend statique (dossier ../public) ET délègue les appels
  * /calculate au requestHandler de l'API existante (src/server.js).
- * Tout vit ainsi sur une seule origine : pas de souci de CORS côté navigateur,
- * et `npm start` lance frontend + backend ensemble.
- *
- * Le requestHandler de l'API n'est volontairement PAS modifié : son contrat
- * (404 sur /, JSON partout, etc.) reste couvert par les tests d'intégration.
  */
 const http = require("http");
 const url = require("url");
