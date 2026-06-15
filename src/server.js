@@ -92,6 +92,7 @@ function requestHandler(req, res) {
 
 const server = http.createServer(requestHandler);
 
+/* istanbul ignore next */
 if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
