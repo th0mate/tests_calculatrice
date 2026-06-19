@@ -7,7 +7,7 @@ describe("API /calculate", () => {
 
   beforeAll((done) => {
     server = http.createServer(requestHandler);
-    server.listen(0, "127.0.0.1", done); // port aléatoire
+    server.listen(0, "127.0.0.1", done);
   });
 
   afterAll((done) => {

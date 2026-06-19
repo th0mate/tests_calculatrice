@@ -44,6 +44,42 @@ jobs:
           path: coverage/
           retention-days: 30
 
+  test-php:
+    name: Tests PHP (PHPUnit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backends/php
+    steps:
+      - uses: actions/checkout@v5
+      - name: Installation de PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring
+          tools: composer
+      - name: Installation des dépendances
+        run: composer install --no-interaction --no-progress
+      - name: Tests unitaires + d'intégration
+        run: vendor/bin/phpunit
+
+  test-java:
+    name: Tests Java (JUnit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backends/java
+    steps:
+      - uses: actions/checkout@v5
+      - name: Installation de Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - name: Tests unitaires + d'intégration
+        run: mvn -B test
+
   e2e:
     name: Tests E2E (Playwright)
     runs-on: ubuntu-latest

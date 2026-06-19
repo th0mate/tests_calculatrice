@@ -1,0 +1,58 @@
+#   - backend-node  (Node.js)  : http://localhost:3000/calculate
+#   - backend-php   (PHP)       : http://localhost:3001/calculate
+#   - backend-java  (Java)      : http://localhost:3002/calculate
+#   - frontend      (statique)  : http://localhost:8080
+# Pour changer de techno : modifier BACKEND_PORT
+# dans .env, recréer le frontend (docker compose up -d frontend) puis recharger.
+#
+# Les tests unitaires + d'intégration de chaque techno sont exécutés pendant le
+# build de l'image correspondante (le build échoue si un test échoue).
+
+services:
+  backend-node:
+    build:
+      context: .
+      dockerfile: backends/node/Dockerfile
+    image: calc-backend-node
+    environment:
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  backend-php:
+    build:
+      context: ./backends/php
+    image: calc-backend-php
+    environment:
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  backend-java:
+    build:
+      context: ./backends/java
+    image: calc-backend-java
+    environment:
+      - PORT=3002
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: calc-frontend
+    env_file:
+      - .env
+    environment:
+      - WEB_PORT=8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend-node
+      - backend-php
+      - backend-java
+    restart: unless-stopped

@@ -1,4 +1,5 @@
 const Calculator = require("../src/calculator");
+const {expect} = require("../e2e/fixtures");
 
 describe("Calculator", () => {
   let calculator;

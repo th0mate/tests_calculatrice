@@ -11,6 +11,11 @@
 
   const OP_SYMBOLS = { add: "+", subtract: "−", multiply: "×", divide: "÷" };
 
+  // Base de l'API. Injectée au runtime par /config.js (généré par le serveur
+  // web à partir du .env). Vide => même origine (le serveur web délègue alors
+  // /calculate en interne, ce qui garde les tests locaux/e2e fonctionnels).
+  const API_BASE = (typeof window !== "undefined" && window.__CALC_API__) || "";
+
   const state = {
     current: "0",
     operand: null,
@@ -22,7 +27,6 @@
   function formatNumber(n) {
     if (n === null || n === undefined) return "0";
     if (!isFinite(n)) return n > 0 ? "∞" : "−∞";
-    // Affichage français : pas plus de 10 décimales significatives.
     const rounded = Math.round(n * 1e10) / 1e10;
     return rounded.toLocaleString("fr-FR", { maximumFractionDigits: 10 });
   }
@@ -137,7 +141,7 @@
 
     try {
       const params = new URLSearchParams({ operation, a, b });
-      const res = await fetch(`/calculate?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/calculate?${params.toString()}`);
       const data = await res.json();
 
       if (!res.ok) {

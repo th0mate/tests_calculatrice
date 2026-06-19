@@ -10,7 +10,7 @@ const path = require("path");
 const fs = require("fs");
 const {requestHandler} = require("../src/server");
 
-const PORT = process.env.WEB_PORT || process.env.PORT || 3000;
+const PORT = process.env.WEB_PORT || process.env.PORT || process.argv[2] || 3000;
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 
 const MIME_TYPES = {
@@ -39,8 +39,30 @@ function sendFile(res, filePath) {
     });
 }
 
+/**
+ * Génère le fichier de configuration runtime consommé par le frontend.
+ * Expose `window.__CALC_API__`, la base d'URL du backend choisi via le .env
+ * (BACKEND_HOST + BACKEND_PORT). Vide => même origine : le serveur web délègue
+ * alors lui-même /calculate à l'API Node embarquée (utile en local/CI).
+ */
+function sendConfig(res) {
+    const host = process.env.BACKEND_HOST || "";
+    const port = process.env.BACKEND_PORT || "";
+    const base = host && port ? `http://${host}:${port}` : "";
+    const body = `window.__CALC_API__ = ${JSON.stringify(base)};\n`;
+    res.writeHead(200, {
+        "Content-Type": "text/javascript; charset=utf-8",
+        "Cache-Control": "no-cache",
+    });
+    res.end(body);
+}
+
 function webHandler(req, res) {
     const pathname = url.parse(req.url).pathname;
+
+    if (pathname === "/config.js") {
+        return sendConfig(res);
+    }
 
     if (pathname === "/calculate") {
         return requestHandler(req, res);
