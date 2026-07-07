@@ -10,6 +10,41 @@ const path = require("path");
 const fs = require("fs");
 const {requestHandler} = require("../src/server");
 
+/**
+ * Charge le .env à la racine du repo (s'il existe) dans process.env, sans
+ * écraser les variables déjà définies (Docker `env_file`, CI, ligne de
+ * commande...). En local, `npm start` ne passe par aucun outil qui lit le
+ * .env : sans ça, BACKEND_HOST/BACKEND_PORT restent vides et le frontend
+ * appelle sa propre origine (port 3000) au lieu du backend choisi.
+ */
+function loadEnv() {
+    let content;
+    try {
+        content = fs.readFileSync(path.join(__dirname, "..", ".env"), "utf8");
+    } catch {
+        return;
+    }
+    for (const line of content.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eq = trimmed.indexOf("=");
+        if (eq === -1) continue;
+        const key = trimmed.slice(0, eq).trim();
+        let value = trimmed.slice(eq + 1).trim();
+        if (
+            (value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))
+        ) {
+            value = value.slice(1, -1);
+        }
+        if (key && !(key in process.env)) {
+            process.env[key] = value;
+        }
+    }
+}
+
+loadEnv();
+
 const PORT = process.env.WEB_PORT || process.env.PORT || process.argv[2] || 3000;
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 
@@ -40,16 +75,30 @@ function sendFile(res, filePath) {
 }
 
 /**
- * Génère le fichier de configuration runtime consommé par le frontend.
- * Expose `window.__CALC_API__`, la base d'URL du backend choisi via le .env
- * (BACKEND_HOST + BACKEND_PORT). Vide => même origine : le serveur web délègue
- * alors lui-même /calculate à l'API Node embarquée (utile en local/CI).
+ * Catalogue des backends disponibles. Les ports sont figés par docker-compose
+ * (backend-node : 3000, backend-php : 3001, backend-java : 3002) et tournent
+ * tous en parallèle. Le frontend bascule de l'un à l'autre À CHAUD : plus besoin
+ * de rebuild. Le .env (BACKEND_PORT) ne fait plus que choisir le backend
+ * présélectionné au premier chargement.
+ */
+const BACKENDS = [
+    {id: "node", label: "Node.js", port: 3000},
+    {id: "php", label: "PHP", port: 3001},
+    {id: "java", label: "Java", port: 3002},
+];
+
+/**
+ * Génère la config runtime consommée par le frontend : le catalogue des
+ * backends (`window.__CALC_BACKENDS__`) et l'identifiant du backend par défaut
+ * (`window.__CALC_DEFAULT__`), déduit du BACKEND_PORT du .env.
  */
 function sendConfig(res) {
-    const host = process.env.BACKEND_HOST || "";
-    const port = process.env.BACKEND_PORT || "";
-    const base = host && port ? `http://${host}:${port}` : "";
-    const body = `window.__CALC_API__ = ${JSON.stringify(base)};\n`;
+    const envPort = String(process.env.BACKEND_PORT || "");
+    const fallback = BACKENDS.find((b) => String(b.port) === envPort);
+    const defaultId = fallback ? fallback.id : BACKENDS[0].id;
+    const body =
+        `window.__CALC_BACKENDS__ = ${JSON.stringify(BACKENDS)};\n` +
+        `window.__CALC_DEFAULT__ = ${JSON.stringify(defaultId)};\n`;
     res.writeHead(200, {
         "Content-Type": "text/javascript; charset=utf-8",
         "Cache-Control": "no-cache",

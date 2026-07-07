@@ -11,10 +11,28 @@
 
   const OP_SYMBOLS = { add: "+", subtract: "−", multiply: "×", divide: "÷" };
 
-  // Base de l'API. Injectée au runtime par /config.js (généré par le serveur
-  // web à partir du .env). Vide => même origine (le serveur web délègue alors
-  // /calculate en interne, ce qui garde les tests locaux/e2e fonctionnels).
-  const API_BASE = (typeof window !== "undefined" && window.__CALC_API__) || "";
+  const backendEl = document.getElementById("backend");
+  const backendTrigger = document.getElementById("backend-trigger");
+  const backendNameEl = document.getElementById("backend-name");
+  const backendMenu = document.getElementById("backend-menu");
+
+  const STORE_KEY = "aurora-backend";
+  const BACKENDS =
+    typeof window !== "undefined" &&
+    Array.isArray(window.__CALC_BACKENDS__) &&
+    window.__CALC_BACKENDS__.length
+      ? window.__CALC_BACKENDS__
+      : [{ id: "node", label: "Node.js", port: Number(location.port) || 3000 }];
+  const DEFAULT_ID =
+    (typeof window !== "undefined" && window.__CALC_DEFAULT__) || BACKENDS[0].id;
+
+  const findBackend = (id) => BACKENDS.find((b) => b.id === id) || BACKENDS[0];
+  const baseFor = (b) => `${location.protocol}//${location.hostname}:${b.port}`;
+
+  let currentBackend = findBackend(localStorage.getItem(STORE_KEY) || DEFAULT_ID);
+  let API_BASE = baseFor(currentBackend);
+
+  const health = {};
 
   const state = {
     current: "0",
@@ -128,7 +146,7 @@
   async function equals(chainOp = null) {
     if (state.locked) return;
     if (state.operation === null || state.operand === null || state.overwrite) {
-      return; // rien à calculer
+      return;
     }
 
     const a = state.operand;
@@ -142,6 +160,7 @@
     try {
       const params = new URLSearchParams({ operation, a, b });
       const res = await fetch(`${API_BASE}/calculate?${params.toString()}`);
+      health[currentBackend.id] = "up";
       const data = await res.json();
 
       if (!res.ok) {
@@ -161,13 +180,17 @@
       setStatus("idle", "API prête");
       addHistory(exprText, state.current);
     } catch (err) {
-      state.current = err.message;
+      const offline = err instanceof TypeError;
+      if (offline) health[currentBackend.id] = "down";
+      state.current = offline
+        ? `« ${currentBackend.label} » injoignable`
+        : err.message;
       state.operand = null;
       state.operation = null;
       state.overwrite = true;
       displayEl.classList.remove("display--result");
       displayEl.classList.add("display--error");
-      setStatus("error", "Erreur API");
+      setStatus("error", offline ? `Hors ligne · port ${currentBackend.port}` : "Erreur API");
     } finally {
       state.locked = false;
       render();
@@ -246,6 +269,11 @@
   };
 
   window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !backendMenu.hidden) {
+      e.preventDefault();
+      closeBackendMenu();
+      return;
+    }
     let selector = null;
     if (/^[0-9]$/.test(e.key)) selector = `[data-digit="${e.key}"]`;
     else if (KEY_MAP[e.key]) selector = KEY_MAP[e.key];
@@ -254,6 +282,79 @@
     const btn = document.querySelector(`.key${selector}`);
     if (btn) handleKey(btn);
   });
+
+  function renderBackendMenu() {
+    backendMenu.innerHTML = "";
+    for (const b of BACKENDS) {
+      const li = document.createElement("li");
+      li.className = "backend__option";
+      li.setAttribute("role", "option");
+      li.dataset.id = b.id;
+      li.innerHTML = `
+        <span class="backend__ping" data-state="idle" title="Disponibilité"></span>
+        <span class="backend__optname"></span>
+        <span class="backend__optport"></span>
+        <svg class="backend__check" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M5 12l5 5 9-9" />
+        </svg>`;
+      li.querySelector(".backend__optname").textContent = b.label;
+      li.querySelector(".backend__optport").textContent = `:${b.port}`;
+      li.addEventListener("click", () => selectBackend(b.id));
+      backendMenu.appendChild(li);
+    }
+    syncBackendUI();
+  }
+
+  function syncBackendUI() {
+    backendNameEl.textContent = currentBackend.label;
+    backendMenu.querySelectorAll(".backend__option").forEach((li) => {
+      li.setAttribute("aria-selected", String(li.dataset.id === currentBackend.id));
+    });
+  }
+
+  function selectBackend(id) {
+    currentBackend = findBackend(id);
+    API_BASE = baseFor(currentBackend);
+    localStorage.setItem(STORE_KEY, currentBackend.id);
+    syncBackendUI();
+    closeBackendMenu();
+    setStatus("idle", `Backend : ${currentBackend.label}`);
+    clearTimeout(selectBackend._t);
+    selectBackend._t = setTimeout(() => {
+      if (!state.locked) setStatus("idle", "API prête");
+    }, 1600);
+  }
+
+  function syncPings() {
+    backendMenu.querySelectorAll(".backend__option").forEach((li) => {
+      li.querySelector(".backend__ping").dataset.state = health[li.dataset.id] || "idle";
+    });
+  }
+
+  function openBackendMenu() {
+    syncPings();
+    backendMenu.hidden = false;
+    backendEl.classList.add("is-open");
+    backendTrigger.setAttribute("aria-expanded", "true");
+  }
+
+  function closeBackendMenu() {
+    backendMenu.hidden = true;
+    backendEl.classList.remove("is-open");
+    backendTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  backendTrigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (backendMenu.hidden) openBackendMenu();
+    else closeBackendMenu();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!backendEl.contains(e.target)) closeBackendMenu();
+  });
+
+  renderBackendMenu();
 
   const root = document.documentElement;
   const storedTheme = localStorage.getItem("aurora-theme");

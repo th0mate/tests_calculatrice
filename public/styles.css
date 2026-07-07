@@ -181,7 +181,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .brand {
@@ -207,10 +207,181 @@ body {
   font-size: 1.05rem;
 }
 
-.head__tools {
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* --- Sélecteur de backend --------------------------------------------- */
+.backend {
+  position: relative;
+}
+
+.backend__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 10px 6px 7px;
+  border-radius: 14px;
+  background: var(--key);
+  border: 1px solid var(--key-border);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s var(--spring);
+}
+.backend__trigger:hover {
+  background: var(--key-hover);
+}
+.backend__trigger:active {
+  transform: scale(0.97);
+}
+.backend.is-open .backend__trigger {
+  border-color: var(--panel-highlight);
+  background: var(--key-hover);
+}
+
+.backend__badge {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #0b0b16;
+  flex: none;
+  box-shadow: 0 6px 16px -6px var(--accent-glow);
+}
+.backend__badge svg {
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.backend__badge circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+.backend__meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+.backend__label {
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-faint);
+}
+.backend__name {
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.backend__chevron {
+  fill: none;
+  stroke: var(--text-soft);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.25s var(--spring);
+}
+.backend.is-open .backend__chevron {
+  transform: rotate(180deg);
+}
+
+.backend__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  min-width: 212px;
+  list-style: none;
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  transform-origin: top left;
+  animation: menuIn 0.22s var(--spring);
+}
+.backend__menu[hidden] {
+  display: none;
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+
+.backend__option {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 9px 10px;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.backend__option:hover {
+  background: var(--key-hover);
+}
+.backend__option[aria-selected="true"] {
+  background: var(--key);
+}
+
+.backend__ping {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--text-faint);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.backend__ping[data-state="up"] {
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(84, 230, 165, 0.18);
+}
+.backend__ping[data-state="down"] {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px rgba(255, 107, 136, 0.16);
+}
+
+.backend__optname {
+  flex: 1 1 auto;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.backend__optport {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  font-feature-settings: "tnum";
+}
+
+.backend__check {
+  width: 16px;
+  flex: none;
+  color: var(--accent);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.2s ease, transform 0.2s var(--spring);
+}
+.backend__option[aria-selected="true"] .backend__check {
+  opacity: 1;
+  transform: none;
 }
 
 .status {
